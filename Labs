@@ -1,0 +1,127 @@
+###
+#  Lab 1
+###
+
+###Setting working directory
+
+#OSX
+#setwd("/filepath")
+
+
+###Loading data
+data <- read.csv("BES2017const.csv")
+
+###Exploring dataset
+str(data)
+
+#Fixing encoding issue by renaming the first variable name to 'pano'
+names(data)[1] <- 'pano'
+
+#Number of variables and observations
+ncol(data)
+nrow(data)
+
+#Level of measurement of the variables: 
+str(data$SNPPPC17)
+head(data$SNPPPC17)
+
+str(data$c11Female)
+head(data$c11Female)
+
+#Mean and median and range of votes cast for conservative party in 2017
+mean(data$Con17)
+median(data$Con17)
+range(data$Con17)
+
+#Mode of variable Winner 17
+table(data$Winner17)
+
+#Constituencies that have more than 30% students?
+data$ConstituencyName[data$c11FulltimeStudent > 30]
+
+#Exploring graphically with hist
+hist(data$Con17)
+hist(data$UKIP17)
+
+# Variance and the standard dev. of 2017 vote share for the Conservatives and UKIP
+var(data$Con17)
+sqrt(var(data$Con17))
+#OR
+sd(data$Con17)
+#Remove missing values
+var(data$UKIP17, na.rm = TRUE)
+sqrt(var(data$UKIP17, na.rm = TRUE))
+
+# Subset of the data with only Conservative constituencies as of 2017.
+conservative17 <- data[data$Winner17==1,]
+
+# New object with subset of data with only those 2017 Conservative constituencies that were not Conservative in 2015
+newly_conservative17 <- data[data$Winner17==1 & data$Winner15 != 1,]
+#Total new con.'s
+nrow(newly_conservative17)
+
+# Num of female major party candidate in 2017
+nrow(
+  data[data$LabPPCsex17 == 1 | data$ConPPCsex17 == 1,]
+)
+
+# Dummy variable for safe and marginal constituencies
+# Marginal constituencies = being in the lowest quartile of winning margins
+quantile(data$Majority17)
+
+Q1 <- quantile(data$Majority17, probs = .25)
+
+data$marginal <- ifelse(
+  data$Majority17 > Q1, 0, 1
+)
+
+# Variable indicates if there was a female Conservative candidate
+data$conservative_gender <- ifelse(
+  data$ConPPCsex17 == 1, 'female', 'male'
+)
+#Table of Data
+table(
+    data$marginal,
+    data$conservative_gender
+)
+
+### Hypothesis test 1
+
+# Correlation between the UKIP 17 vote share and the percentage of england-born population?
+cor.test(data$UKIP17, data$c11BornEngland)
+
+# Female Conservative candidates vote share compared to male candidates?
+t.test(data$Con17 ~ data$conservative_gender)
+
+#Null hypothesis and an alt hypothesis
+
+# H0: Conservative party was equally likely to run with a female candidate in safe and marginal constituencies
+
+# HA: Conservative party was more likely to run with a female candidate in safe constituencies as compared to marginal constituencies
+
+# Chi-squared test.
+chisq.test(data$marginal, data$conservative_gender)
+
+### Hypothesis test 2
+
+# Are county (rural) and borough (urban) constituencies equally Conservative? 
+# H0: Rural and urban constituencies are equally Conservative.
+# HA: Rural and urban constituencies are not equally Conservative. 
+t.test(data$Con17[data$ConstituencyType==0],data$Con17[data$ConstituencyType==1])
+
+### Excercise 1
+x1 =  49
+s1 =  13.3 
+n1 =  351 
+x2 =  34.6 
+s2 =  14 
+n2 =  281
+
+SP = sqrt(s1^2/n1 + s2^2/n2)
+t = (x1 - x2) / SP
+df = (s1^2/n1 + s2^2/n2)^2 / ((s1^2/n1)^2/(n1-1) + (s2^2/n2)^2/(n2-1))
+
+#Two-tailed test
+p = pt(-t, df, lower.tail = TRUE) * 2
+p <= 0.05
+
