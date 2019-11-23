@@ -205,7 +205,4 @@ t.test(model4$residuals) # P-value of 1 we cannot reject the null-hypothesis tha
 # No discernible pattern in the Scale-Location plot, i.e. our data is homoscedastic and the model assumption is met.
 
 # Assumption 8: Normality u~N(0,σ2)
-
 # Normal Q-Q plot shows some deviation from the normal distribution in the extremes, but the residuals still are normally distributed enough. Therefore, our assumption is met.
-
-
