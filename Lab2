@@ -1,0 +1,211 @@
+###
+# Lab 2
+###
+
+### British Election Study Constituency data
+
+data <- read.csv("BES2017const.csv")
+
+
+### Hypothesis testing
+## One categorical and one continuous variable: Student's t-Test
+
+# Was the average turnout the same in rural as in urban constituencies?
+# H0: The average turnout was the same in rural as in urban constituencies.
+# H1: The average turnout was higher in rural than in urban constituencies.
+boxplot(data$Turnout17 ~ data$ConstituencyType,
+      xlab = "Constituency type",
+      ylab = "Turnout in the 2017 General Elections (%)")
+
+t.test(data$Turnout17 ~ data$ConstituencyType)
+
+# Linear regression model
+model1 <- lm(data$Turnout17 ~ as.factor(data$ConstituencyType))
+summary(model1)
+
+# The average turnout was higher in rural than in urban constituencies. This difference is statistically significant at 99.9% confidence level.
+
+## Two continuous variables: Test for Correlation
+
+# Is there an association between the percentage of fulltime students in a constituency and the UKIP cote share in the 2017 GE?
+
+# H0: There is no association between the percentage of fulltime students in a constituency and the UKIP cote share in the 2017 GE?
+# H1: There is a negative association between the percentage of fulltime students in a constituency and the UKIP cote share in the 2017 GE?
+plot(data$c11FulltimeStudent, data$UKIP17)
+
+cor.test(data$UKIP17, data$c11FulltimeStudent)
+
+# Linear regression model
+model2 <- lm(data$UKIP17 ~ data$c11FulltimeStudent)
+summary(model2)
+
+# Scatterplot with abline()
+plot(data$c11FulltimeStudent, data$UKIP17)
+abline(model2, col = "red")
+
+# There is a negative association between the percentage of fulltime students in a constituency and the UKIP cote share in the 2017 GE. It is statistically significant at 99.9% confidence level.
+
+# Relationship between % of full-time students and % turnout in 2017 GE 
+plot(data$c11FulltimeStudent, data$Turnout17)
+
+# Slope of the line
+plot(data$c11FulltimeStudent[1:2], data$Turnout17[1:2])
+
+# a = Δy / Δx = (y2-y1) / (x2-x1)
+a = (data$Turnout17[2] - data$Turnout17[1]) / 
+    (data$c11FulltimeStudent[2] - data$c11FulltimeStudent[1])
+a
+#OR
+a = (data$Turnout17[1] - data$Turnout17[2]) / 
+    (data$c11FulltimeStudent[1] - data$c11FulltimeStudent[2])
+a
+
+# Calculated by hand:
+
+a = (71.04815 - 66.680029) / (6.72057 - 6.230728)
+a
+
+# Intercept
+
+# Y = B0 + B1 * X1 + u (where B1 is the intecept, B2 the slope and u is assumed to be zero)
+B1 = a
+
+# Reposition formula to: B1 = Y - B2 * X
+B0 =  data$Turnout17[1] - B1 *  data$c11FulltimeStudent[1]
+B0
+
+# OR
+B0 =  data$Turnout17[2] - B1 *  data$c11FulltimeStudent[2]
+B0
+
+# Y value for point 2.
+Y = B0 + B1 * data$c11FulltimeStudent[2]
+
+Y == data$Turnout17[2]
+
+# Line for two data points
+# Plot the two points and then run: abline(intercept, slope)
+plot(data$c11FulltimeStudent[1:2], data$Turnout17[1:2])
+abline(B0, B1, col = "red")
+
+# Seems very inaccurate...
+plot(data$c11FulltimeStudent, data$Turnout17)
+abline(B0, B1, col = "red")
+
+# Including all available observations
+# Regression model on all data 
+model3 <- lm(data$Turnout17 ~ data$c11FulltimeStudent)
+summary(model3)
+
+#Fitting regression line to all data, we can easily access the neccesary parameters for abline which are saved in the object "model3"
+# Intercept
+model3$coefficients[1]
+# Slope
+model3$coefficients[2]
+
+plot(data$c11FulltimeStudent, data$Turnout17)
+abline(model3$coefficients[1], model3$coefficients[2], col = "red")
+
+# Feeding saved linear model to the abline() function.
+plot(data$c11FulltimeStudent, data$Turnout17)
+abline(model3, col = "blue")
+
+# Residuals: difference between observed values of the dependent variable (y) and the predicted values (ŷ)
+plot(model3$residuals)
+
+# Looks good (random pattern centered around 0)
+
+# Histogram of residuals
+hist(model3$residuals, breaks = 10, xlim = c(-15,15))
+
+# Is there a relationship between proportion of retired citizens in the 2011 census and the proportion of leave votes in the 2016 EU Referendum according to the Hanretty Estimate (2017)?
+# H0: The proportion of leave votes in a constituency is not associated with the proportion of retired citizens.
+# H1: The proportion of leave votes in a constituency is positively associated with the proportion of retired citizens, i.e. the higher the proportion of retired citizens the higher the proportion of leave votes.
+
+# c11Retired vs leaveHanretty
+plot(data$c11Retired, data$leaveHanretty, 
+     col = 'darkgreen', pch = 19, cex = 0.5)
+
+# Slope of the line
+b1 = (data$leaveHanretty[2] - data$leaveHanretty[1]) / 
+    (data$c11Retired[2] - data$c11Retired[1])
+b1
+
+# Intercept
+b0 = data$leaveHanretty[1] - b1 * data$c11Retired[1]
+b0
+
+# Y value for one of the two points.
+Y = b0 + b1 * data$c11Retired[1]
+Y == data$leaveHanretty[1]
+
+# Plotting these two points and then fitting the line for these two data points in red
+plot(data$c11Retired[1:2], data$leaveHanretty[1:2])
+abline(b0,b1, col = "red")
+
+# Plot all observations and fit line for your two data points in red
+plot(data$c11Retired, data$leaveHanretty)
+abline(b0,b1, col = "red")# Fit is very bad. Two points are not enough to assess the relationship between our variables. Therefore, we need to include all observations into our model.
+
+#Testing hypothesis with a linear regression model
+model4 <- lm(data$leaveHanretty ~ data$c11Retired)
+summary(model4)
+
+# Reporting and interpreting intercept
+model4$coefficients[1]
+
+# Intercept = 29.9. It describes the expected proportion of leave voters if the proportion of retired citizens in a constituency was zero.
+
+
+# Is it significant? If yes, at what confidence level?
+model4$coefficients[2]
+
+# Coefficient is 1.6. It describes the expected increase of leave voters (%) for a one unit increase (1 %) of retired citizens in a constituency. This association is highly significant at the 99.9% confidence level.
+
+# Plot the data including the regression line
+plot(data$c11Retired, data$leaveHanretty)
+abline(model4)
+
+# Summarise the relationship between the percentage of retired citizens and the percentage of leave voters in the 2016 EU referendum.
+# There is a strong, positive effect from the percentage of retired citizens on the percentage of leave voters in the 2016 EU referendum. This effect is highly significant at the 99.9% confidence level.
+
+# What is the expected percentage of leave voters in a constituency with 20% retired citizens?
+29.8562 + 20 * 1.5551 # We expect 61% leave voters in a constituency with 20% retired citizens.
+
+# Scatterplot of the residuals
+plot(model4$residuals)
+
+# Histogramm of residuals
+hist(model4$residuals, breaks = 10, xlim = c(-25,25))
+
+# Interpret the plots
+#Residual plots do not reveal any violations of the assumptions. 
+
+
+# Testing  model assumptions
+# Ploting model
+par(mfrow=c(2,2)) # plot 4 plots at once, i.e. 2 x 2 pictures on one plot
+plot(model4)
+par(mfrow=c(1,1)) # resets to the default, i.e. 1 plot at a time
+
+# Assumption 1: Linearity
+# Residuals vs Fitted plot indicates that this relationship is breached!
+# There seems to be a quadratic relationship between the proportion of retired 
+# citizens and the proportion of people having voted leave in the referendum.
+# >> Since the linearity assumption has been breached, the model cannot be 
+# interpreted and must be reformulated.
+
+# Assumption 2: Cov(X,u)=0
+cor.test(model4$fitted.values,model4$residuals)# With a p-value of 1 we cannot reject the null-hypothesis that the true correlation is equal to 0. Therefore, our assumption that the covariance between the data and the residuals is 0 is met.
+
+# Assumption 3: E(u)=0
+t.test(model4$residuals) # P-value of 1 we cannot reject the null-hypothesis that the true mean is equal to 0. Therefore, our assumption that the mean of the residuals is 0 is met.
+
+# Assumption 4: Var(u)=constant
+# No discernible pattern in the Scale-Location plot, i.e. our data is homoscedastic and the model assumption is met.
+
+# Assumption 8: Normality u~N(0,σ2)
+
+# Normal Q-Q plot shows some deviation from the normal distribution in the extremes, but the residuals still are normally distributed enough. Therefore, our assumption is met.
+
+
